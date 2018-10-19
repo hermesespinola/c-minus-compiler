@@ -1,0 +1,17 @@
+int x;
+
+int fact (int x)
+{ if (x < 0)
+    return x * x - 1;
+  else
+    return 1;
+}
+
+void main (void x)
+{
+    int x;
+    if (x > 0) x = 23; else {
+        x = 10;
+        y = 12;
+    }
+}
