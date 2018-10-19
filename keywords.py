@@ -46,7 +46,8 @@ punctuation = {
     ')': Sym(RIGHT_PAR, ')'),
     '{': Sym(LEFT_CURL, '{'),
     '}': Sym(RIGHT_CURL, '}'),
-    '[': Sym(LEFT_BRACKET, ']')
+    '[': Sym(LEFT_BRACKET, '['),
+    ']': Sym(RIGHT_BRACKET, ']')
 }
 
 KeywordType = Dict[str, Sym]

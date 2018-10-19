@@ -66,7 +66,7 @@ def expression(start: int, tokens: List[Token]):
     i = start
     previous = None
     stack = []
-    while tokens[i] is not SEMMI:
+    while tokens[i].symbol.kind is not SEMMI:
         # first construct literals, ids and function call tokens
         sym = tokens[i].symbol
         if sym.kind in LITERALS:
@@ -241,6 +241,9 @@ def func_declarations(start: int, tokens: list):
 
 def args_def(start: int, tokens: list):
     i = start
+    if tokens[i].symbol.kind is VOID:
+        check_token(tokens[i + 1], RIGHT_PAR)
+        return i + 2
     if tokens[i].symbol.kind is RIGHT_PAR:
         return i + 1
     while tokens[i-1].symbol.kind is not RIGHT_PAR:
@@ -256,10 +259,7 @@ def func_def(start: int, tokens: list):
     # Check declarations
     check_token(tokens[end_args], LEFT_CURL)
     end_declarations = end_args + 1
-    print(tokens[end_declarations].symbol)
-    print(data_types)
     if tokens[end_declarations].symbol.kind in DATA_TYPES:
-        print('yay here')
         end_declarations = func_declarations(end_declarations, tokens)
 
     # Check function body
@@ -269,7 +269,7 @@ def func_def(start: int, tokens: list):
     return end_body + 1, text
 
 def var_def(i, tokens):
-    if tokens[i + 2] is LEFT_BRACKET:
+    if tokens[i + 2].symbol.kind is LEFT_BRACKET:
         return i + 6
     else:
         return i + 3

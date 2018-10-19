@@ -7,9 +7,9 @@ int fact (int x)
     return 1;
 }
 
-void main (void x)
+void main (void)
 {
-    int x;
+    int x[5];
     if (x > 0) x = 23; else {
         x = 10;
         y = 12;
