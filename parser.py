@@ -41,20 +41,22 @@ def check_token(token: Token, kind: int):
 
 def arguments(start: int, tokens: List[Token]):
     i = start
-    text = 'begin params\n'
+    eval_text = ''
+    params_text = 'begin params\n'
     param_count = 0
     while tokens[i].symbol.kind is not RIGHT_PAR:
         param_count += 1
         i, expression_body, last_operation_text = expression(i, tokens)
         # params text
         var_par = next(getVarName)
-        text += expression_body + var_par + ' = ' + last_operation_text + '\nparam ' + var_par + '\n'
+        eval_text += expression_body + var_par + ' = ' + last_operation_text + '\n'
+        params_text += 'param ' + var_par + '\n'
         if tokens[i].symbol.kind is not COMMA:
             check_token(tokens[i], RIGHT_PAR)
             break
         check_token(tokens[i], COMMA)
         i += 1
-    return i, text, param_count
+    return i, eval_text + params_text, param_count
 
 def call(start, tokens):
     i = start + 2

@@ -1,18 +1,6 @@
-int fact(int a, int b) {
-    int x;
-    int y[2];
-    while(x = 4 > 0) {
-        if (x <= 3)
-            return x - fact(2, x);
-        else {
-            x = x + 1;
-        }
-    }
-}
-
 void main (void) {
     int x[12];
     int i;
-    x[i + f(3, g(5 * 4)) * 2 + 5] = 12;
+    x[i + f(3, g(5 * 4, h(4, x[2] = i = 5 + 4 * i))) * 2 + 5] = 12;
     return;
 }
