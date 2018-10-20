@@ -1,17 +1,18 @@
-int x;
-
-int fact (int x)
-{ if (x < 0)
-    return x * x - 1;
-  else
-    return 1;
+int fact(int a, int b) {
+    int x;
+    int y[2];
+    while(x = 4 > 0) {
+        if (x <= 3)
+            return x - fact(2, x);
+        else {
+            x = x + 1;
+        }
+    }
 }
 
-void main (void)
-{
-    int x[5];
-    if (x > 0) x = 23; else {
-        x = 10;
-        y = 12;
-    }
+void main (void) {
+    int x[12];
+    int i;
+    x[i + f(3, g(5 * 4)) * 2 + 5] = 12;
+    return;
 }

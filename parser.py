@@ -1,7 +1,7 @@
 from FuncSymTable import FunctionSymbolTable
 from token import Token
 from Symbol import *
-from typing import Tuple, Dict
+from typing import Tuple, Dict, List
 from syntax_tree import *
 from keywords import data_types
 
@@ -20,9 +20,7 @@ def labelNameGenerator():
 getLabelName = labelNameGenerator()
 
 def throwSyntaxError(msg):
-    print(msg)
-    print('incorrecto')
-    exit()
+    raise Exception(msg)
 
 def check_id(token: Token, dtype: int):
     if token.symbol.kind is not ID:
@@ -41,87 +39,134 @@ def check_token(token: Token, kind: int):
     if token.symbol.kind is not kind:
         throwSyntaxError('Esperaba {} pero se encontró {} en linea {}, columna {}'.format(SymEnum(kind).name, token.symbol.value, token.line, token.col))
 
-def parameters(start: int, tokens: List[Token]):
+def arguments(start: int, tokens: List[Token]):
     i = start
-    parameters_tree = []
+    text = 'begin params\n'
+    param_count = 0
     while tokens[i].symbol.kind is not RIGHT_PAR:
-        check_id(tokens[i], ID)
-        token = func_symtable.get_token(tokens[i].symbol.value)
-        dtype = None if token is None else token.dtype
-        parameters_tree.append(IdNode(dtype, token.symbol.value))
-        if tokens[i+1].symbol.kind is RIGHT_PAR:
-            return i + 1, ParametersNode(parameters_tree)
-        check_token(tokens[i+1], COMMA)
-        check_token(tokens[i+2], ID)
-        i += 2
-    return i, ParametersNode(parameters_tree)
+        param_count += 1
+        i, expression_body, last_operation_text = expression(i, tokens)
+        # params text
+        var_par = next(getVarName)
+        text += expression_body + var_par + ' = ' + last_operation_text + '\nparam ' + var_par + '\n'
+        if tokens[i].symbol.kind is not COMMA:
+            check_token(tokens[i], RIGHT_PAR)
+            break
+        check_token(tokens[i], COMMA)
+        i += 1
+    return i, text, param_count
+
+def call(start, tokens):
+    i = start + 2
+    text = ''
+    n_args = 0
+    check_token(tokens[start], ID)
+    check_token(tokens[start + 1], LEFT_PAR)
+    if not tokens[start + 2].symbol.kind is RIGHT_PAR:
+        i, text, n_args = arguments(start + 2, tokens)
+    check_token(tokens[i], RIGHT_PAR)
+    var_return = next(getVarName)
+    text += var_return + ' = ' + 'call ' + tokens[start].symbol.value + ', ' + str(n_args) + '\n'
+    return i + 1, text, var_return
+
+def factor(start, tokens):
+    if tokens[start].symbol.kind is ID:
+        if tokens[start + 1].symbol.kind is LEFT_PAR:
+            # function call
+            return call(start, tokens)
+        elif tokens[start + 1].symbol.kind is LEFT_BRACKET:
+            i, body, var_pos = var_array(start, tokens)
+
+            return i, body, '*' + var_pos
+        else:
+            return start + 1, '', tokens[start].symbol.value
+    elif tokens[start].symbol.kind is NUM:
+        return start + 1, '', tokens[start].symbol.value
+    else:
+        check_token(tokens[start], LEFT_PAR)
+        i, expr_body, last_operation_text = expression(start + 1, tokens)
+        check_token(tokens[i], RIGHT_PAR)
+        expr_var = next(getVarName)
+        expr_body += expr_var + ' = ' + last_operation_text + '\n'
+        return i + 1, expr_body, expr_var
+
+def additive_expression(start, tokens):
+    term_end, term_body, term_result = term(start, tokens)
+    if tokens[term_end].symbol.kind in [PLUS, MINUS]:
+        term2_end, term2_body, term2_result = additive_expression(term_end + 1, tokens)
+        term_body += term2_body
+        
+        term_var = next(getVarName)
+        term_body += term_var + ' = ' + term_result.replace('\n', '') + ' ' + tokens[term_end].symbol.value + ' ' + term2_result + '\n'
+        term_end = term2_end
+        term_result = term_var
+    return term_end, term_body, term_result
+
+def term(start, tokens):
+    term_end, term_body, term_result = factor(start, tokens)
+    if tokens[term_end].symbol.kind in [TIMES, DIV]:
+        term2_end, term2_body, term2_result = term(term_end + 1, tokens)
+        term_body += term2_body
+        
+        term_var = next(getVarName)
+        term_body += term_var + ' = ' + term_result + ' ' + tokens[term_end].symbol.value + ' ' + term2_result + '\n'
+        term_end = term2_end
+        term_result = term_var
+    return term_end, term_body, term_result
+
+def simple_expression(start, tokens):
+    # El de a de veras
+    term_end, term_body, term_result = additive_expression(start, tokens)
+    if tokens[term_end].symbol.kind in COMPARISON_OPERATORS:
+        term2_end, term2_body, term2_result = additive_expression(term_end + 1, tokens)
+        term_body += term2_body
+        term_var = next(getVarName)
+        term_body += term_var + ' = ' + term_result + ' ' + tokens[term_end].symbol.value + ' ' + term2_result + '\n'
+        term_end = term2_end
+        term_result = term_var
+    return term_end, term_body, term_result + '\n'
+
+def var_array(start, tokens):
+    check_token(tokens[start + 1], LEFT_BRACKET)
+    expression_end, expression_body, last_operation_text = expression(start + 2, tokens)
+    check_token(tokens[expression_end], RIGHT_BRACKET)
+    var_index = next(getVarName)
+    var_offset = next(getVarName)
+    text = expression_body + var_index + ' = ' + last_operation_text + '\n'
+    text += var_offset + ' = ' + var_index + ' * elem_size(' + tokens[start].symbol.value + ')\n'
+    var_pos = next(getVarName)
+    text += var_pos + ' = &' + tokens[start].symbol.value + ' + ' + var_offset + '\n'
+    return expression_end + 1, text, var_pos
+
+def ass_expression(start, tokens):
+    # Check assignment syntax
+    i = start
+    check_token(tokens[start], ID)
+    text, result_var = '', tokens[start].symbol.value
+    if tokens[start+1].symbol.kind is LEFT_BRACKET:
+         i, var_text, result_var = var_array(start, tokens)
+         result_var = '*' + result_var
+         text += var_text
+    else:
+        i += 1
+    check_token(tokens[i], ASS)
+
+    i, expr_body_text, last_operation_text = expression(i + 1, tokens)
+    text += expr_body_text + result_var + ' = ' + last_operation_text + '\n'
+    return i, text, result_var
 
 # Expression can be any of: literal (NUM or BOOL), id, function call, binary expression
+ # TODO: access to array
 def expression(start: int, tokens: List[Token]):
-    i = start
-    expr_body_text, last_operation_text = 'body\n', 'last'
-    while tokens[i].symbol.kind not in [SEMMI, RIGHT_PAR]:
-        i += 1
-    return i, expr_body_text, last_operation_text
-    i = start
-    previous = None
-    stack = []
-    while tokens[i].symbol.kind is not SEMMI:
-        # first construct literals, ids and function call tokens
-        sym = tokens[i].symbol
-        if sym.kind in LITERALS:
-            # Check previous node is ok
-            if previous is not None and (previous is not LEFT_PAR and previous not in OPERATORS):
-                throwSyntaxError('Sintaxis invalida en linea {}, columna {}'.format(tokens[i].line, tokens[i].col))
-            stack.append(tokens[i])
-        elif sym.kind is ID:
-            nextKind = tokens[i+1].symbol.kind
-            if previous is not None and (previous is not LEFT_PAR and previous not in OPERATORS):
-                throwSyntaxError('Sintaxis invalida en linea {}, columna {}'.format(tokens[i].line, tokens[i].col))
-            if nextKind is LEFT_PAR:
-                # Create function call node with parameters
-                i, parameters_node = parameters(i + 2, tokens, func_symtable)
-                check_token(tokens[i], RIGHT_PAR)
-                stack.append(FuncCallNode(sym.value, parameters_node))
-            else:
-                token = func_symtable.get_token(sym.value)
-                dtype = None if token is None else token.dtype
-                stack.append(IdNode(dtype, sym.value))
-        elif sym.kind in OPERATORS:
-            if previous is None or (previous not in LITERALS and previous is not ID and previous is not RIGHT_PAR):
-                throwSyntaxError('Sintaxis invalida en linea {}, columna {}'.format(tokens[i].line, tokens[i].col))
-            stack.append(tokens[i])
-        elif sym.kind is LEFT_PAR:
-            if previous is not None and (previous is not LEFT_PAR and previous not in OPERATORS):
-                throwSyntaxError('Sintaxis invalida en linea {}, columna {}'.format(tokens[i].line, tokens[i].col))
-            stack.append(tokens[i])
-        elif sym.kind is RIGHT_PAR:
-            if previous is None or (previous not in LITERALS and previous is not ID and previous is not RIGHT_PAR):
-                throwSyntaxError('Sintaxis invalida en linea {}, columna {}'.format(tokens[i].line, tokens[i].col))
-            nested_expr = []
-            x = stack.pop()
-            while x.symbol.kind is not LEFT_PAR if type(x) is Token else True:
-                nested_expr.append(x)
-                if len(stack) == 0:
-                    throwSyntaxError('Sintaxis invalida: falta parentesis izquierdo')
-                x = stack.pop()
-            stack.append(nested_expr)
-        elif sym.kind is SEMMI:
-            break
-        else:
-            throwSyntaxError('Sintaxis invalida: {} en linea {}, columna {}'.format(tokens[i].symbol.value, tokens[i].line, tokens[i].col))
-        previous = sym.kind
-        i += 1
+    try:
+        return ass_expression(start, tokens)
+    except:
+        return simple_expression(start, tokens)
 
-    # Check balanced parenthesis
-    for item in stack:
-        if type(item) is Token and item.symbol.kind is LEFT_PAR:
-            throwSyntaxError('Sintaxis invalida: parentesis no balanceados en linea {}, columna {}'.format(item.symbol.value, item.line, item.col))
-
-    # TODO: parse intermediate stack to prefix expression
-    expression_node = stack
-    check_token(tokens[i], SEMMI)
-    return i, expression_node
+def expression_statement(start: int, tokens: List[Token]):
+    expr_end, expr_body, _ = expression(start, tokens)
+    check_token(tokens[expr_end], SEMMI)
+    return expr_end + 1, expr_body 
 
 def while_statement(start: int, tokens: List[Token]):
     # Check while syntax
@@ -193,16 +238,6 @@ def if_statement(start: int, tokens: List[Token]):
 
     return if_body_end, if_text
 
-def ass_statement(start: int, tokens: List[Token]):
-    # Check assignment syntax
-    check_token(tokens[start], ID)
-    check_token(tokens[start+1], ASS)
-
-    i, expr_body_text, last_operation_text = expression(start + 2, tokens)
-    text = expr_body_text + tokens[start].symbol.value  + ' = ' + last_operation_text + '\n'
-    check_token(tokens[i], SEMMI)
-    return i + 1, text
-
 def return_statement(start: int, tokens: List[Token]):
     check_token(tokens[start], REGRESA)
     if (tokens[start+1].symbol.kind is SEMMI):
@@ -220,10 +255,10 @@ def statement(start: int, tokens: List[Token]):
         return if_statement(start, tokens)
     if kind is MIENTRAS:
         return while_statement(start, tokens)
-    if kind is ID:
-        return ass_statement(start, tokens)
     if kind is REGRESA:
         return return_statement(start, tokens)
+    else:
+        return expression_statement(start, tokens)
 
 def func_body(start: int, tokens: List[Token]):
     i = start
@@ -236,10 +271,10 @@ def func_body(start: int, tokens: List[Token]):
 def func_declarations(start: int, tokens: list):
     i = start
     while tokens[i].symbol.kind in DATA_TYPES:
-        i = var_def(i, tokens)
+        i = var_def(i, tokens, False)
     return i
 
-def args_def(start: int, tokens: list):
+def parameters(start: int, tokens: list):
     i = start
     if tokens[i].symbol.kind is VOID:
         check_token(tokens[i + 1], RIGHT_PAR)
@@ -247,14 +282,14 @@ def args_def(start: int, tokens: list):
     if tokens[i].symbol.kind is RIGHT_PAR:
         return i + 1
     while tokens[i-1].symbol.kind is not RIGHT_PAR:
-        i = var_def(i, tokens)
+        i = var_def(i, tokens, True)
     return i
 
 def func_def(start: int, tokens: list):
     text = 'entry ' + tokens[start + 1].symbol.value  + '\n'
     # Check function args
     check_token(tokens[start+2], LEFT_PAR)
-    end_args = args_def(start+3, tokens)
+    end_args = parameters(start+3, tokens)
 
     # Check declarations
     check_token(tokens[end_args], LEFT_CURL)
@@ -268,9 +303,9 @@ def func_def(start: int, tokens: list):
     check_token(tokens[end_body], RIGHT_CURL)
     return end_body + 1, text
 
-def var_def(i, tokens):
+def var_def(i, tokens, isParam):
     if tokens[i + 2].symbol.kind is LEFT_BRACKET:
-        return i + 6
+        return i + 6 - isParam
     else:
         return i + 3
 
@@ -279,7 +314,7 @@ def func_defs_var_def(tokens: list):
     text = ''
     while (i + 2) < len(tokens):
         if tokens[i + 2].symbol.kind in [SEMMI, LEFT_BRACKET]:
-            i = var_def(i, tokens)
+            i = var_def(i, tokens, False)
         else:
             i, _text = func_def(i, tokens)
             text += _text
