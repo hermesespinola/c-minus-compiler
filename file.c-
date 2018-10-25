@@ -1,6 +1,10 @@
 void main (void) {
     int x[12];
     int i;
-    x[i + f(3, g(5 * 4, h(4, x[2] = i = 5 + 4 * i))) * 2 + 5] = 12;
-    return;
+    i = read();
+    write(i);
+    write(x[i + f(3, g(5 * 4, h(4, x[2] = i = 5 + 4 * i))) * 2 + 5] = 12);
+    write(12 + 5);
+    write(4);
+    return x;
 }

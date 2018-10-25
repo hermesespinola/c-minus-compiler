@@ -153,9 +153,14 @@ def ass_expression(start, tokens):
         i += 1
     check_token(tokens[i], ASS)
 
-    i, expr_body_text, last_operation_text = expression(i + 1, tokens)
-    text += expr_body_text + result_var + ' = ' + last_operation_text + '\n'
-    return i, text, result_var
+    if tokens[i+1].symbol.kind is ID and tokens[i+1].symbol.value == 'read':
+        check_token(tokens[i+2], LEFT_PAR)
+        check_token(tokens[i+3], RIGHT_PAR)
+        return i+4, 'read ' + result_var + '\n', result_var
+    else:
+        i, expr_body_text, last_operation_text = expression(i + 1, tokens)
+        text += expr_body_text + result_var + ' = ' + last_operation_text + '\n'
+        return i, text, result_var
 
 # Expression can be any of: literal (NUM or BOOL), id, function call, binary expression
  # TODO: access to array
@@ -259,6 +264,13 @@ def statement(start: int, tokens: List[Token]):
         return while_statement(start, tokens)
     if kind is REGRESA:
         return return_statement(start, tokens)
+    if kind is ID and tokens[start].symbol.value == 'write':
+        check_token(tokens[start+1], LEFT_PAR)
+        expression_end, expr_body_text, last_operation_text = expression(start + 2, tokens)
+        stmt_text = expr_body_text + 'write ' + last_operation_text + '\n'
+        check_token(tokens[expression_end], RIGHT_PAR)
+        check_token(tokens[expression_end+1], SEMMI)
+        return expression_end+2, stmt_text
     else:
         return expression_statement(start, tokens)
 
