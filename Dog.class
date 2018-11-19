@@ -15,5 +15,8 @@ To pee it decreases its pee_level by 10.0.
 To sleep it increments its sleep_level by 21.0.
 To takeAShit it lets amount be "way too much";
     it walk with min_hp as 11.0, and a_reason as "I need to take a shit";
+    while its hp is greater than 1
+        it walk with min_hp as 1.0, and a_reason as "I feel like so",
+        and it decreases its hp by 2.0;
     it says "Guau, guau";
     it increments its hp by 10.0.

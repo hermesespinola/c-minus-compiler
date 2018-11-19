@@ -28,6 +28,9 @@ def class_declaration(tokens: List[Token]):
 def factor(tokens):
     if tokens[0].isK(ID) or tokens[0].isK(NUM):
         return tokens[1:]
+    elif tokens[0].isK(POSESIVE):
+        check_token(tokens[1], ID)
+        return tokens[2:]
     else:
         check_token(tokens[0], LEFT_PAR)
         tokens = simple_expression(tokens[1:])
@@ -46,11 +49,27 @@ def additive_expression(tokens):
         tokens = additive_expression(tokens[1:])
     return tokens
 
+def relop(tokens):
+    """
+    consumes strings with this form:
+    [not] (less|<|greater|>|equal|==|equals|!=) [than|to]
+    """
+    if tokens[0].isK(NOT):
+        tokens = tokens[1:]
+    if not tokens[0].inK(COMPARISON_OPERATORS):
+        throwSyntaxError('expected comparisson operator')
+    if tokens[1].inK([THAN, TO]):
+        return tokens[2:]
+    return tokens[1:]
+
 def simple_expression(tokens):
     # El de a de veras
     tokens = additive_expression(tokens)
     if tokens[0].inK(COMPARISON_OPERATORS):
         tokens = additive_expression(tokens[1:])
+    elif tokens[0].isK(IS):
+        tokens = relop(tokens[1:])
+        tokens = additive_expression(tokens)
     return tokens
 
 def math_or_string_expression(tokens):
@@ -65,7 +84,7 @@ def attribute(tokens: List[Token]):
     if tokens[1].isK(EQUALS):
         check_token(tokens[2], TO)
         tokens = math_or_string_expression(tokens[3:])
-        return tokens[0:]
+        return tokens
     else:
         return tokens[1:]
 
@@ -138,12 +157,17 @@ def function_arguments(tokens):
 
     while tokens[0].isK(COMMA):
         if tokens[1].value() == 'and':
-            tokens = tokens[2:]
+            if tokens[3].isK(AS):
+                check_token(tokens[2], ID)
+                tokens = math_or_string_expression(tokens[4:])
+            else:
+                return tokens
         else:
-            tokens = tokens[1:]
-        check_token(tokens[0], ID)
-        check_token(tokens[1], AS)
-        tokens = math_or_string_expression(tokens[2:])
+            if tokens[2].isK(AS):
+                check_token(tokens[1], ID)
+                tokens = math_or_string_expression(tokens[3:])
+            else:
+                return tokens
     return tokens
 
 def function_call_expression(tokens):
@@ -162,6 +186,30 @@ def assignment_expression(tokens):
     # IDEA: include function call? none return anything anyway
     return math_or_string_expression(tokens[2:])
 
+def inner_sentences(tokens):
+    tokens = sentence(tokens)
+    if tokens[0].isK(DOT):
+        return tokens
+    if tokens[0].isK(SEMMI):
+        return tokens
+    check_token(tokens[0], COMMA)
+    if tokens[1].value() == 'and':
+        return inner_sentences(tokens[2:])
+    else:
+        return inner_sentences(tokens[1:])
+
+def conditional_expression(tokens):
+    check_token(tokens[0], IF)
+    # TODO: Add booleans (TRUE, FALSE) and boolean operators (and, or, not)
+    tokens = math_or_string_expression(tokens[1:])
+    return inner_sentences(tokens)
+
+def loop_expression(tokens):
+    check_token(tokens[0], WHILE)
+    # TODO: Add booleans (TRUE, FALSE) and boolean operators (and, or, not)
+    tokens = math_or_string_expression(tokens[1:])
+    return inner_sentences(tokens)
+
 def sentence(tokens: List[Token]):
     if tokens[1].isK(INCREMENTS):
         return increment_expression(tokens)
@@ -173,6 +221,10 @@ def sentence(tokens: List[Token]):
         return function_call_expression(tokens)
     elif tokens[1].isK(LETS):
         return assignment_expression(tokens)
+    elif tokens[0].isK(IF):
+        return conditional_expression(tokens)
+    elif tokens[0].isK(WHILE):
+        return loop_expression(tokens)
 
 def sentences(tokens: List[Token]):
     tokens = sentence(tokens)
