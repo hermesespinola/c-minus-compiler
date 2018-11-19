@@ -2,20 +2,36 @@ from Symbol import *
 from typing import Dict
 
 statements = {
-    'main': Sym(PRINCIPAL, 'main'),
-    'return': Sym(REGRESA, 'return'),
-    'if': Sym(SI, 'if'),
-    'else': Sym(ELSE, 'else'),
-    'while': Sym(MIENTRAS, 'while')
-}
-data_types = {
-    'int': Sym(ENTERO, 'int'),
-    'float': Sym(LOGICO, 'float'),
-    'void': Sym(VOID, 'void')
-}
-booleans = {
-    'true': Sym(VERDADERO, 'true'),
-    'false': Sym(FALSO, 'false')
+    'a': Sym(A, 'a'),
+    'class': Sym(CLASS, 'class'),
+    'is': Sym(IS, 'is'),
+    'he': Sym(PRONOUN, 'he'),
+    'she': Sym(PRONOUN, 'she'),
+    'it': Sym(PRONOUN, 'it'),
+    'has': Sym(HAS, 'has'),
+    'equal': Sym(EQUALS, 'equal'),
+    'equals': Sym(EQUALS, 'equals'),
+    'to': Sym(TO, 'to'),
+    'can': Sym(CAN, 'can'),
+    'needs': Sym(NEEDS, 'needs'),
+    'his': Sym(POSESIVE, 'his'),
+    'her': Sym(POSESIVE, 'her'),
+    'its': Sym(POSESIVE, 'its'),
+    'and': Sym(BOOLEAN_OP, 'and'),
+    'or': Sym(BOOLEAN_OP, 'or'),
+    'not': Sym(BOOLEAN_OP, 'not'),
+    'by': Sym(BY, 'by'),
+    'as': Sym(AS, 'as'),
+    'if': Sym(IF, 'if'),
+    'with': Sym(WITH, 'with'),
+    'while': Sym(WHILE, 'while'),
+    'greater': Sym(GT, 'greater'),
+    'less': Sym(LT, 'less'),
+    'than': Sym(THAN, 'than'),
+    'lets': Sym(LETS, 'lets'),
+    'increments': Sym(INCREMENTS, 'increments'),
+    'decreases': Sym(DECREASES, 'decreases'),
+    '\n': Sym(LINE_BREAK, '\n'),
 }
 arithmetic_ops = {
     '+': Sym(PLUS, '+'),
@@ -42,6 +58,7 @@ assignment = {
 punctuation = {
     ',': Sym(COMMA, ','),
     ';': Sym(SEMMI, ';'),
+    '.': Sym(DOT, '.'),
     '(': Sym(LEFT_PAR, '('),
     ')': Sym(RIGHT_PAR, ')'),
     '{': Sym(LEFT_CURL, '{'),
@@ -52,8 +69,6 @@ punctuation = {
 
 KeywordType = Dict[str, Sym]
 not_ids = statements.copy()
-not_ids.update(data_types)
-not_ids.update(booleans)
 __all__ = not_ids.copy()
 __all__.update(arithmetic_ops)
 __all__.update(relational_ops)

@@ -7,6 +7,15 @@ class Token(object):
         self.col = col
         self.dtype = dtype
 
+    def isK(self, kind):
+        return self.symbol.kind is kind
+
+    def inK(self, kindList):
+        return self.symbol.kind in kindList
+
+    def value(self):
+        return self.symbol.value
+
     def __repr__(self):
         return '<{}, {}, {}:{}:{}>'.format(
             repr(SymEnum(self.symbol.kind)),

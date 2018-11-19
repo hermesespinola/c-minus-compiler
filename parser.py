@@ -73,6 +73,8 @@ def call(start, tokens):
 
 def factor(start, tokens):
     if tokens[start].symbol.kind is ID:
+        if tokens[start+1].symbol.kind in [SEMMI, RIGHT_BRACKET, RIGHT_PAR]:
+            return start + 1, '', tokens[start].symbol.value
         if tokens[start + 1].symbol.kind is LEFT_PAR:
             # function call
             return call(start, tokens)
@@ -163,7 +165,6 @@ def ass_expression(start, tokens):
         return i, text, result_var
 
 # Expression can be any of: literal (NUM or BOOL), id, function call, binary expression
- # TODO: access to array
 def expression(start: int, tokens: List[Token]):
     try:
         return ass_expression(start, tokens)
@@ -282,13 +283,13 @@ def func_body(start: int, tokens: List[Token]):
         body_text += statement_text
     return i, body_text
 
-def func_declarations(start: int, tokens: list):
+def func_declarations(start: int, tokens: List[Token]):
     i = start
     while tokens[i].symbol.kind in DATA_TYPES:
         i = var_def(i, tokens, False)
     return i
 
-def parameters(start: int, tokens: list):
+def parameters(start: int, tokens: List[Token]):
     i = start
     if tokens[i].symbol.kind is VOID:
         check_token(tokens[i + 1], RIGHT_PAR)
@@ -299,7 +300,7 @@ def parameters(start: int, tokens: list):
         i = var_def(i, tokens, True)
     return i
 
-def func_def(start: int, tokens: list):
+def func_def(start: int, tokens: List[Token]):
     text = 'entry ' + tokens[start + 1].symbol.value  + '\n'
     # Check function args
     check_token(tokens[start+2], LEFT_PAR)
@@ -323,7 +324,7 @@ def var_def(i, tokens, isParam):
     else:
         return i + 3
 
-def func_defs_var_def(tokens: list):
+def func_defs_var_def(tokens: List[Token]):
     i = 0
     text = ''
     while (i + 2) < len(tokens):
@@ -334,7 +335,7 @@ def func_defs_var_def(tokens: list):
             text += _text
     return i, text
 
-def archivo(tokens: list):
+def archivo(tokens: List[Token]):
     last, text = func_defs_var_def(tokens)
     return text
 

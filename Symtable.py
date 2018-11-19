@@ -1,5 +1,5 @@
 from keywords import __all__
-from Symbol import Sym, ID
+from Symbol import Sym, ID, STRING
 
 class SymbolTable(object):
     def __init__(self, name: str):
@@ -13,7 +13,10 @@ class SymbolTable(object):
         kwd = __all__.get(value)
         if kwd is not None:
             return kwd
-        new_tkn = self.identifiers[value] = Sym(ID, value)
+        if value[0] == '"':
+            new_tkn = self.identifiers[value] = Sym(STRING, value)
+        else:    
+            new_tkn = self.identifiers[value] = Sym(ID, value)
         return new_tkn
     
     def contains(self, value: str):
