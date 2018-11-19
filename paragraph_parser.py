@@ -153,6 +153,15 @@ def function_call_expression(tokens):
         return function_arguments(tokens[3:])
     return tokens[2:]
 
+def assignment_expression(tokens):
+    check_token(tokens[0],PRONOUN)
+    check_token(tokens[1], LETS)
+    tokens = tokens[3:] if tokens[2].isK(POSESIVE) else tokens[2:]
+    check_token(tokens[0], ID)
+    check_token(tokens[1], BE)
+    # IDEA: include function call? none return anything anyway
+    return math_or_string_expression(tokens[2:])
+
 def sentence(tokens: List[Token]):
     if tokens[1].isK(INCREMENTS):
         return increment_expression(tokens)
@@ -162,6 +171,8 @@ def sentence(tokens: List[Token]):
         return print_expression(tokens)
     elif tokens[1].isK(ID):
         return function_call_expression(tokens)
+    elif tokens[1].isK(LETS):
+        return assignment_expression(tokens)
 
 def sentences(tokens: List[Token]):
     tokens = sentence(tokens)

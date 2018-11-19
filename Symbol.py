@@ -58,6 +58,7 @@ DECREASES = 56
 LINE_BREAK = 57
 STRING = 58
 SAYS = 59
+BE = 60
 
 DATA_TYPES = { ENTERO, REAL, LOGICO, VOID }
 ARITHMETIC_OPERATORS = { PLUS, MINUS, TIMES, DIV, POWER }
@@ -131,6 +132,7 @@ class SymEnum(Enum):
     LINE_BREAK = 57
     STRING = 58
     SAYS = 59
+    BE = 60
 
 class Sym(object):
     def __init__(self, kind: int, value: str):
