@@ -7,13 +7,6 @@ from syntax_tree import *
 def throwSyntaxError(msg):
     raise Exception(msg)
 
-def check_id(token: Token, dtype: int):
-    if not token.isK(ID):
-        value = token.value()
-        throwSyntaxError('Esperaba identificador pero se encontró: {} en linea {}, columna {} '.format(value, token.line, token.col))
-    else:
-        token.dtype = dtype
-
 def check_token_type(token: Token, keyword_type):
     if token.value() not in keyword_type:
         value = token.value()
@@ -21,7 +14,7 @@ def check_token_type(token: Token, keyword_type):
     return token.symbol.kind
 
 def check_token(token: Token, kind: int):
-    if token.isK(not kind):
+    if not token.isK(kind):
         throwSyntaxError('Esperaba {} pero se encontró {} en linea {}, columna {}'.format(SymEnum(kind).name, token.value(), token.line, token.col))
 
 def class_declaration(tokens: List[Token]):
@@ -109,11 +102,107 @@ def method_declaration(tokens: List[Token]):
             tokens = tokens[2:]
     return tokens
 
+def print_expression(tokens):
+    check_token(tokens[0], PRONOUN)
+    check_token(tokens[1], SAYS)
+    return math_or_string_expression(tokens[2:])
+
+def decrement_expression(tokens):
+    check_token(tokens[0], PRONOUN)
+    check_token(tokens[1], DECREASES)
+    if tokens[2].isK(POSESIVE):
+        tokens = tokens[3:]
+    else:
+        tokens = tokens[2:]
+    check_token(tokens[0], ID)
+    check_token(tokens[1], BY)
+    check_token(tokens[2], NUM)
+    return tokens[3:]
+
+def increment_expression(tokens):
+    check_token(tokens[0], PRONOUN)
+    check_token(tokens[1], INCREMENTS)
+    if tokens[2].isK(POSESIVE):
+        tokens = tokens[3:]
+    else:
+        tokens = tokens[2:]
+    check_token(tokens[0], ID)
+    check_token(tokens[1], BY)
+    check_token(tokens[2], NUM)
+    return tokens[3:]
+
+def function_arguments(tokens):
+    check_token(tokens[0], ID)
+    check_token(tokens[1], AS)
+    tokens = math_or_string_expression(tokens[2:])
+
+    while tokens[0].isK(COMMA):
+        if tokens[1].value() == 'and':
+            tokens = tokens[2:]
+        else:
+            tokens = tokens[1:]
+        check_token(tokens[0], ID)
+        check_token(tokens[1], AS)
+        tokens = math_or_string_expression(tokens[2:])
+    return tokens
+
+def function_call_expression(tokens):
+    check_token(tokens[0], PRONOUN)
+    check_token(tokens[1], ID)
+    if tokens[2].isK(WITH):
+        return function_arguments(tokens[3:])
+    return tokens[2:]
+
+def sentence(tokens: List[Token]):
+    if tokens[1].isK(INCREMENTS):
+        return increment_expression(tokens)
+    elif tokens[1].isK(DECREASES):
+        return decrement_expression(tokens)
+    elif tokens[1].isK(SAYS):
+        return print_expression(tokens)
+    elif tokens[1].isK(ID):
+        return function_call_expression(tokens)
+
+def sentences(tokens: List[Token]):
+    tokens = sentence(tokens)
+    if tokens[0].isK(DOT):
+        return tokens[1:]
+    check_token(tokens[0], SEMMI)
+    if tokens[1].value() == 'and':
+        return sentences(tokens[2:])
+    else:
+        return sentences(tokens[1:])
+
+def params(tokens: List[Token]):
+    check_token(tokens[0], ID)
+    while tokens[0].isK(ID):
+        # end params
+        if tokens[1].isK(SEMMI):
+            return tokens[2:]
+        check_token(tokens[1], COMMA)
+        if tokens[2].value() == 'and':
+            tokens = tokens[3:]
+        else:
+            tokens = tokens[2:]
+    return tokens
+
+def method_description(tokens: List[Token]):
+    while tokens and tokens[0].isK(TO):
+        check_token(tokens[0], TO)
+        check_token(tokens[1], ID)
+        if tokens[2].isK(PRONOUN) and tokens[3].isK(NEEDS):
+            tokens = params(tokens[4:])
+            tokens = sentences(tokens)
+        else:
+            tokens = sentences(tokens[2:])
+    return tokens
+
 def class_def(tokens: List[Token]):
     tokens = class_declaration(tokens)
     check_token(tokens[0], DOT)
     tokens = attribute_declaration(tokens[1:])
     tokens = method_declaration(tokens)
+    tokens = method_description(tokens)
     return tokens
 
 def classes(tokens: List[Token]):

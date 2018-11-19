@@ -1,3 +1,18 @@
 A Dog is a class.
-It has name equals to "5 + 4 * i - (3 + i)", hp, sleep_level equal to 5 + 4 * i - (3 + i), and pee_level.
+It has name equals to "5 + 4 * i - (3 + i)",
+    hp, sleep_level equal to 5 + 4 * i - (3 + i),
+    and pee_level.
 It can walk, eat, sleep, bark, pee, and takeAShit.
+To walk it needs min_hp, and a_reason;
+    it barks with something_to_say as name;
+    it decreases its hp by 1;
+    it says "I walk because";
+    and it says a_reason.
+To bark it needs something_to_say;
+    it says something_to_say;
+    it says "I mean, Bark!".
+To pee it decreases its pee_level by 10.0.
+To sleep it increments its sleep_level by 21.0.
+To takeAShit it walk with min_hp as 11.0, and a_reason as "I need to take a shit";
+    it says "Guau, guau";
+    it increments its hp by 10.0.

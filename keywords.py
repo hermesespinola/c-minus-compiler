@@ -32,6 +32,7 @@ statements = {
     'increments': Sym(INCREMENTS, 'increments'),
     'decreases': Sym(DECREASES, 'decreases'),
     '\n': Sym(LINE_BREAK, '\n'),
+    'says': Sym(SAYS, 'says'),
 }
 arithmetic_ops = {
     '+': Sym(PLUS, '+'),
