@@ -107,11 +107,11 @@ def attribute(tokens: List[Token]):
     text = ""
     # init and assign
     check_token(tokens[0], ID)
-    text += tokens[0].value()
+    text += tokens[0].value() + ":"
     if tokens[1].isK(EQUALS):
         check_token(tokens[2], TO)
         tokens, expression_text = math_or_string_expression(tokens[3:])
-        text += ": " + expression_text
+        text += expression_text
         return tokens, text
     else:
         return tokens[1:], text
@@ -359,7 +359,7 @@ def class_def(tokens: List[Token]):
     tokens, attribute_declaration_text = attribute_declaration(tokens[1:])
     tokens = method_declaration(tokens)
     tokens, method_description_text = method_description(tokens)
-    text = class_declaration_text + attribute_declaration_text + method_description_text
+    text = class_declaration_text + attribute_declaration_text + method_description_text + "end\n"
     return tokens, text
 
 def classes(tokens: List[Token]):
