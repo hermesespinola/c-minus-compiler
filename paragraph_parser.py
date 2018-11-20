@@ -28,50 +28,66 @@ def class_declaration(tokens: List[Token]):
 
 def factor(tokens):
     if tokens[0].isK(ID) or tokens[0].isK(NUM):
-        return tokens[1:]
+        return tokens[1:], str(tokens[0].value())
     elif tokens[0].isK(POSESIVE):
         check_token(tokens[1], ID)
-        return tokens[2:]
+        return tokens[2:], "@" + str(tokens[1].value())
     else:
         check_token(tokens[0], LEFT_PAR)
-        tokens = simple_expression(tokens[1:])
+        tokens, expression_text = simple_expression(tokens[1:])
         check_token(tokens[0], RIGHT_PAR)
-        return tokens[1:]
+        return tokens[1:], "(" + expression_text + ")"
 
 def term(tokens):
-    tokens = factor(tokens)
+    tokens, text = factor(tokens)
     if tokens[0].symbol.kind in [TIMES, DIV]:
-        tokens = term(tokens[1:])
-    return tokens
+        text += " " + str(tokens[0].value()) + " "
+        tokens, term_text = term(tokens[1:])
+        text += term_text
+    return tokens, text
 
 def additive_expression(tokens):
-    tokens = term(tokens)
+    tokens, text = term(tokens)
     if tokens[0].inK([PLUS, MINUS]):
-        tokens = additive_expression(tokens[1:])
-    return tokens
+        text += " " + str(tokens[0].value()) + " "
+        tokens, additive_text = additive_expression(tokens[1:])
+        text += additive_text
+    return tokens, text
 
 def relop(tokens):
     """
     consumes strings with this form:
     [not] (less|<|greater|>|equal|==|equals|!=) [than|to]
     """
-    if tokens[0].isK(NOT):
+    map_operators = {GT: ">", LT: "<", EQ: "==", EQUALS: "==", NOT_EQ: "!=", LEQ: "<=", GEQ: ">="}
+    text = ""
+    if str(tokens[0].value()) is "not":
         tokens = tokens[1:]
     if not tokens[0].inK(COMPARISON_OPERATORS):
         throwSyntaxError('expected comparisson operator')
+    text += " " + map_operators[tokens[0].symbol.kind] + " "
     if tokens[1].inK([THAN, TO]):
-        return tokens[2:]
-    return tokens[1:]
+        return tokens[2:], text
+    return tokens[1:], text
 
 def simple_expression(tokens):
+    map_operators = {GT: ">", LT: "<", EQ: "==", EQUALS: "==", NOT_EQ: "!=", LEQ: "<=", GEQ: ">="}
     # El de a de veras
-    tokens = additive_expression(tokens)
+    tokens, text = additive_expression(tokens)
     if tokens[0].inK(COMPARISON_OPERATORS):
-        tokens = additive_expression(tokens[1:])
+        text += " " + map_operators[tokens[0].symbol.kind] + " "
+        tokens, additive_text = additive_expression(tokens[1:])
+        text += additive_text
     elif tokens[0].isK(IS):
-        tokens = relop(tokens[1:])
-        tokens = additive_expression(tokens)
-    return tokens
+        if str(tokens[1].value()) is "not":
+            notValue = True
+        tokens, relop_text = relop(tokens[1:])
+        tokens, additive_text = additive_expression(tokens)
+        if notValue:
+            text = "not (" + text + relop_text + additive_text + ")"
+        else:
+            text += relop_text + additive_text
+    return tokens, text
 
 def math_or_string_expression(tokens):
     if tokens[0].isK(STRING):
@@ -79,6 +95,8 @@ def math_or_string_expression(tokens):
         return tokens[1:], text
     else:
         after_expression_tokens = simple_expression(tokens)
+        if len(after_expression_tokens) > 1:
+            return after_expression_tokens[0], after_expression_tokens[1]
         i, text = 0, ""
         while tokens[i] is not after_expression_tokens[0]:
             text += str(tokens[i].value()) + " "
