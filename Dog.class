@@ -4,7 +4,7 @@ It has name equals to "5 + 4 * i - (3 + i)",
     and pee_level.
 It can walk, eat, sleep, bark, pee, and takeAShit.
 To walk it needs min_hp, and a_reason;
-    it barks with something_to_say as name;
+    it bark with something_to_say as name;
     it decreases its hp by 1;
     it says "I walk because";
     and it says a_reason.
