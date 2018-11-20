@@ -79,6 +79,7 @@ def simple_expression(tokens):
         tokens, additive_text = additive_expression(tokens[1:])
         text += additive_text
     elif tokens[0].isK(IS):
+        notValue = False
         if str(tokens[1].value()) is "not":
             notValue = True
         tokens, relop_text = relop(tokens[1:])
