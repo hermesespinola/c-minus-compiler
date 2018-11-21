@@ -1,7 +1,7 @@
 import string
 from Symtable import SymbolTable
 from token import Token
-from Symbol import Sym, NUM
+from Symbol import Sym, NUM, LINE_BREAK
 from keywords import arithmetic_ops, relational_ops, boolean_ops, assignment, punctuation
 
 DOT = {'.'}
@@ -14,7 +14,6 @@ class Node(object):
         for tran in self.transitions:
             if c in tran[0]:
                 return tran[1]
-        # TODO: create error with line and column number, or collect all errors and raise them later.
         return None
 
 # A class that return True for all expression like: key in everything
@@ -54,18 +53,20 @@ def lexException(line: str, lineno: int, col: int):
     print(msg)
     exit()
 
-def lstrip(string):
+def lstrip(estring):
     i = 0
     stripped = { '\t': 0, ' ': 0, '\r': 0, '\n': 0 }
-    while len(string) < i and string[i] in string.whitespace:
-        stripped[string[i]] += 1
+    while len(estring) < i and estring[i] in string.whitespace:
+        stripped[estring[i]] += 1
         i += 1
-    return string[i:], stripped, i
+    return estring[i:], stripped, i
 
 def tokenize(line: str, lineno: int, symtable: SymbolTable):
     current = initialNode
     tokens = []
     value = ''
+    if line == '\n':
+        return [Token(Sym(LINE_BREAK, '\n'), lineno, 0)]
     for col, char in enumerate(line):
         if current is None:
             lexException(line, lineno, col-1)

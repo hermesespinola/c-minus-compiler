@@ -118,13 +118,15 @@ def attribute(tokens: List[Token]):
         return tokens[1:], text
 
 def attribute_declaration(tokens: List[Token]):
+    # TODO: PRONOUN optional empty has declaration empty attribute pronoun optional.
+    if not tokens[0].isK(PRONOUN):
+        return tokens, ""
     check_token(tokens[0], PRONOUN)
     first = True
     header_text = "def initialize("
     text = ""
     if not tokens[1].isK(HAS):
-        full_text = header_text + ")\n" + text + "end\n"
-        return tokens, full_text
+        return tokens, ""
     tokens = tokens[2:]
     while tokens[0].isK(ID):
         if first:
@@ -147,6 +149,8 @@ def attribute_declaration(tokens: List[Token]):
     return tokens, full_text
 
 def method_declaration(tokens: List[Token]):
+    if not tokens[0].isK(PRONOUN):
+        return tokens
     check_token(tokens[0], PRONOUN)
     if not tokens[1].isK(CAN):
         return tokens
@@ -368,6 +372,9 @@ def classes(tokens: List[Token]):
     tokens, class_text = class_def(tokens)
     text += class_text
     while tokens and tokens[0].isK(LINE_BREAK):
+        tokens = tokens[1:]
+        if tokens[0].isK(LINE_BREAK):
+            continue
         class_text = ""
         tokens, class_text = class_def(tokens)
         text += class_text
