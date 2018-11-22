@@ -149,22 +149,24 @@ def attribute_declaration(tokens: List[Token]):
     return tokens, full_text
 
 def method_declaration(tokens: List[Token]):
+    method_list = []
     if not tokens[0].isK(PRONOUN):
-        return tokens
+        return tokens, method_list
     check_token(tokens[0], PRONOUN)
     if not tokens[1].isK(CAN):
-        return tokens
+        return tokens, method_list
     tokens = tokens[2:]
     while tokens[0].isK(ID):
+        method_list.append(tokens[0].symbol.value)
         # end method declarations
         if tokens[1].isK(DOT):
-            return tokens[2:]
+            return tokens[2:], method_list
         check_token(tokens[1], COMMA)
         if tokens[2].value() == 'and':
             tokens = tokens[3:]
         else:
             tokens = tokens[2:]
-    return tokens
+    return tokens, method_list
 
 def print_expression(tokens):
     check_token(tokens[0], PRONOUN)
@@ -340,10 +342,12 @@ def params(tokens: List[Token]):
     return tokens, text
 
 def method_description(tokens: List[Token]):
+    list_of_descriptions = []
     text = ""
     while len(tokens) > 0 and tokens[0].isK(TO):
         check_token(tokens[0], TO)
         check_token(tokens[1], ID)
+        list_of_descriptions.append(tokens[1].symbol.value)
         text += "def " + str(tokens[1].value()) + "("
         if tokens[2].isK(PRONOUN) and tokens[3].isK(NEEDS):
             tokens, params_text = params(tokens[4:])
@@ -356,14 +360,19 @@ def method_description(tokens: List[Token]):
             tokens, sentences_text = sentences(tokens[2:])
             text += sentences_text
             text += "end\n"
-    return tokens, text
+    return tokens, text, list_of_descriptions
 
 def class_def(tokens: List[Token]):
     tokens, class_declaration_text = class_declaration(tokens)
     check_token(tokens[0], DOT)
     tokens, attribute_declaration_text = attribute_declaration(tokens[1:])
-    tokens = method_declaration(tokens)
-    tokens, method_description_text = method_description(tokens)
+    tokens, list_of_methods = method_declaration(tokens)
+    print(list_of_methods)
+    tokens, method_description_text, list_of_descriptions = method_description(tokens)
+    print(list_of_descriptions)
+    for declaration in list_of_methods:
+        if declaration not in list_of_descriptions:
+            raise Exception("Declared method: '", declaration,"' was not described.")
     text = class_declaration_text + attribute_declaration_text + method_description_text + "end\n"
     return tokens, text
 
