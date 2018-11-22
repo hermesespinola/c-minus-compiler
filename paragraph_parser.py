@@ -32,6 +32,8 @@ def factor(tokens):
     elif tokens[0].isK(POSESIVE):
         check_token(tokens[1], ID)
         return tokens[2:], "@" + str(tokens[1].value())
+    elif tokens[0].isK(PRONOUN):
+        return function_call_expression(tokens)
     else:
         check_token(tokens[0], LEFT_PAR)
         tokens, expression_text = simple_expression(tokens[1:])
@@ -240,9 +242,9 @@ def function_call_expression(tokens):
     text += tokens[1].value() + "("
     if tokens[2].isK(WITH):
         after_arguments_tokens, arguments_text = function_arguments(tokens[3:])
-        text += arguments_text + ")\n"
+        text += arguments_text + ")"
         return after_arguments_tokens, text
-    text += ")\n"
+    text += ")"
     return tokens[2:], text
 
 def assignment_expression(tokens):
@@ -281,7 +283,7 @@ def conditional_expression(tokens):
     tokens, expression_text = math_or_string_expression(tokens[1:])
     text = "if " + expression_text + "\n"
     tokens, inner_text = inner_sentences(tokens)
-    return tokens, text + inner_text
+    return tokens, text + inner_text + "end\n"
 
 def loop_expression(tokens):
     check_token(tokens[0], WHILE)
@@ -308,7 +310,8 @@ def sentence(tokens: List[Token]):
     elif tokens[1].isK(SAYS):
         return print_expression(tokens)
     elif tokens[1].isK(ID):
-        return function_call_expression(tokens)
+        tokens, function_call_text = function_call_expression(tokens)
+        return tokens, function_call_text + "\n"
     elif tokens[1].isK(LETS):
         return assignment_expression(tokens)
     elif tokens[0].isK(IF):
@@ -376,9 +379,7 @@ def class_def(tokens: List[Token]):
     check_token(tokens[0], DOT)
     tokens, attribute_declaration_text = attribute_declaration(tokens[1:])
     tokens, list_of_methods = method_declaration(tokens)
-    print(list_of_methods)
     tokens, method_description_text, list_of_descriptions = method_description(tokens)
-    print(list_of_descriptions)
     for declaration in list_of_methods:
         if declaration not in list_of_descriptions:
             raise Exception("Declared method: '", declaration,"' was not described.")

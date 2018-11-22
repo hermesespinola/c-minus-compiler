@@ -5,6 +5,8 @@ It has name equals to "firulais",
 It can walk, sleep, bark, pee, and takeAShit.
 To walk it needs min_hp, and a_reason;
     it bark with something_to_say as his name;
+    if its hp is less than 100
+    it returns 5 + he bark with something_to_say as "HEEY" - 1 * (4 + 2);
     it decreases its hp by 1;
     it says "I walk because";
     and it returns a_reason.
