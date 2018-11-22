@@ -291,6 +291,13 @@ def loop_expression(tokens):
     text += inner_text + "end\n"
     return  after_inner_tokens, text
 
+def return_expression(tokens):
+    check_token(tokens[0], PRONOUN)
+    check_token(tokens[1], RETURNS)
+    tokens, expression_text = math_or_string_expression(tokens[2:])
+    text = "return " + expression_text + "\n"
+    return tokens, text
+
 def sentence(tokens: List[Token]):
     if tokens[1].isK(INCREMENTS):
         return increment_expression(tokens)
@@ -306,6 +313,8 @@ def sentence(tokens: List[Token]):
         return conditional_expression(tokens)
     elif tokens[0].isK(WHILE):
         return loop_expression(tokens)
+    elif tokens[1].isK(RETURNS):
+        return return_expression(tokens)
 
 def sentences(tokens: List[Token]):
     tokens, sentence_text = sentence(tokens)
