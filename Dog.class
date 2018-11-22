@@ -2,7 +2,7 @@ A Dog is a class.
 It has name equals to "firulais",
     hp, sleep_level equal to 5 + 4 * i - (3 + i),
     and pee_level.
-It can walk, eat, sleep, bark, pee, and takeAShit.
+It can walk, sleep, bark, pee, and takeAShit.
 To walk it needs min_hp, and a_reason;
     it bark with something_to_say as his name;
     it decreases its hp by 1;
