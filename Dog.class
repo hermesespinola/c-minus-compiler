@@ -3,7 +3,7 @@ It has name equals to "firulais", energy equal to 100.0.
 It can eat, work, sleep, want.
 To eat it needs food, hunger; it says "i'm going to eat"; it says food.
 To work if its energy is less than 50 it says "i can't work";
-    while its energy is greater than 40 it decreases energy by 1, if its energy is not less than 50 it says "i am working.";
+    if its energy is not less than 50 it says "i am working.";
     it returns his energy.
 To sleep it needs energy; it says "i am going to sleep"; it increases his energy by (energy / 2) * 2 + 4.0.
 To want it says "to want is human".
@@ -27,7 +27,7 @@ To bark it needs something_to_say;
 To pee it decreases its pee_level by 10.0.
 To sleep it increments its sleep_level by 21.0.
 To goToTheBathroom it lets amount be "way too much";
-    it walk with min_hp as 11.0, and a_reason as "I need to take a shit";
+    it walk with min_hp as 11.0, and a_reason as "I need to go to the bathroom";
     while its hp is greater than 1
         it walk with min_hp as 1.0, and a_reason as "I feel like so",
         and it decreases its hp by 2.0;
@@ -35,8 +35,12 @@ To goToTheBathroom it lets amount be "way too much";
     it increments its hp by 10.0.
 
 A Plant is a class.
-She has size, color equal to "green" and foodLevel and onFire equal to "yes".
-She can grow, eatSun and absorbeWater.
-To grow she needs food, aReasonToLive;
+She has foodLevel.
+She can grow, eatSun, and absorbeWater.
+To grow she needs water, aReasonToLive;
+    If water is less than 1 She returns "I cant grow >(";
+    If aReasonToLive is equal to 0 she returns "I dont want to live".
 To eatSun she needs sun;
+    While sun is less than 1 it increments its foodLevel by 1.0, and she says "YUM". 
 To absorbeWater she needs water;
+    If its water is less than 1 she returns "I dont have enough water".

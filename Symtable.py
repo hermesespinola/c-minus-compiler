@@ -7,16 +7,17 @@ class SymbolTable(object):
         self.identifiers = {}
 
     def lookup(self, value: str):
-        tkn = self.identifiers.get(value)
+        lower = value.lower()
+        tkn = self.identifiers.get(lower)
         if tkn is not None:
             return tkn
-        kwd = __all__.get(value)
+        kwd = __all__.get(lower)
         if kwd is not None:
             return kwd
         if value[0] == '"':
             new_tkn = self.identifiers[value] = Sym(STRING, value)
         else:    
-            new_tkn = self.identifiers[value] = Sym(ID, value)
+            new_tkn = self.identifiers[value] = Sym(ID, lower)
         return new_tkn
     
     def contains(self, value: str):

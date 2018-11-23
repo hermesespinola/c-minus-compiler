@@ -32,7 +32,7 @@ dotNode = Node([(set(string.digits), floatNode)])
 intNode = Node(is_final=True)
 intNode.transitions = [(set(string.digits), intNode), (DOT, dotNode)]
 idNode = Node(is_final=True)
-idNode.transitions = [(set(string.ascii_lowercase+'_').union(string.digits), idNode)]
+idNode.transitions = [(set(string.ascii_letters+'_').union(string.digits), idNode)]
 stringNode = Node(is_final=True)
 stringNode.transitions = [('"', terminalNode), (Everything(), stringNode)]
 initialNode = Node([
@@ -41,7 +41,7 @@ initialNode = Node([
     (set(boolean_ops.keys()), booleanNode),
     (set(assignment.keys()), assignmentNode),
     (set(punctuation.keys()), terminalNode),
-    (set(string.ascii_lowercase), idNode),
+    (set(string.ascii_letters), idNode),
     (set(string.digits), intNode),
     ('"', stringNode),
 ])
@@ -50,7 +50,7 @@ def lexException(line: str, lineno: int, col: int):
     import re
     msg = "token no esperado en linea {}, columna {}:\n{}{}" \
         .format(lineno, col, line, re.sub(r'[^\s]', ' ', line[:col]) + '^')
-    print(msg)
+    raise Exception(msg)
     exit()
 
 def lstrip(estring):
