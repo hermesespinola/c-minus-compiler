@@ -205,9 +205,9 @@ def increment_expression(tokens):
     check_token(tokens[0], ID)
     text += tokens[0].value()
     check_token(tokens[1], BY)
-    check_token(tokens[2], NUM)
-    text += " += " + str(tokens[2].value()) + "\n"
-    return tokens[3:], text
+    tokens, expression_text = math_or_string_expression(tokens[2:])
+    text += " += " + expression_text + "\n"
+    return tokens, text
 
 def function_arguments(tokens):
     text = ""
@@ -303,7 +303,13 @@ def return_expression(tokens):
     return tokens, text
 
 def sentence(tokens: List[Token]):
-    if tokens[1].isK(INCREMENTS):
+    if tokens[0].isK(IF):
+        return conditional_expression(tokens)
+    elif tokens[0].isK(WHILE):
+        return loop_expression(tokens)
+    elif tokens[1].isK(RETURNS):
+        return return_expression(tokens)
+    elif tokens[1].isK(INCREMENTS):
         return increment_expression(tokens)
     elif tokens[1].isK(DECREASES):
         return decrement_expression(tokens)
@@ -314,12 +320,6 @@ def sentence(tokens: List[Token]):
         return tokens, function_call_text + "\n"
     elif tokens[1].isK(LETS):
         return assignment_expression(tokens)
-    elif tokens[0].isK(IF):
-        return conditional_expression(tokens)
-    elif tokens[0].isK(WHILE):
-        return loop_expression(tokens)
-    elif tokens[1].isK(RETURNS):
-        return return_expression(tokens)
 
 def sentences(tokens: List[Token]):
     tokens, sentence_text = sentence(tokens)
