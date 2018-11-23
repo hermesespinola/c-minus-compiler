@@ -8,7 +8,6 @@ To work if its energy is less than 50 it says "i can't work";
 To sleep it needs energy; it says "i am going to sleep"; it increases his energy by (energy / 2) * 2 + 4.0.
 To want it says "to want is human".
 
-
 A Dog is a class.
 It has name equals to "firulais",
     hp, sleep_level equal to 5 + 4 - (3 + 2),

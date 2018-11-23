@@ -54,7 +54,7 @@ end
     end
     def takeashit()
     amount = "way too much"
-    walk(min_hp: 11.0, a_reason: "i need to take a shit")
+    walk(min_hp: 11.0, a_reason: "i need to go to the bathroom")
     while @hp > 1
     @hp -= 2.0
     end

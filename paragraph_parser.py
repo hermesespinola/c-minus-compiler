@@ -390,7 +390,7 @@ def classes(tokens: List[Token]):
     text = ""
     tokens, class_text = class_def(tokens)
     text += class_text
-    while tokens and tokens[0].isK(LINE_BREAK):
+    while tokens and len(tokens) > 1 and tokens[0].isK(LINE_BREAK):
         tokens = tokens[1:]
         if tokens[0].isK(LINE_BREAK):
             continue
